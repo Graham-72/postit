@@ -1,0 +1,159 @@
+<?php
+
+
+/**
+ * Implements hook_menu().
+ */
+function postit_menu(){
+  $items['admin/structure/postit/manage'] = array(
+    'title' => 'PostIt Admin',
+    'description' => 'Manage PostIT structure',
+    'page callback' => 'postit_info',
+    'access arguments' => array('administer postits'),
+  );
+  $items['postit/%'] = array(
+	  'title' => 'New PostIt',
+    'page callback' => 'postit_page_view',
+    'page arguments' => array(1),
+    'access arguments' => array('view postits'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['postit/add'] = array(
+    'title' => 'Add PostIT!',
+    'page callback' => 'postit_add',
+    'access arguments' => array('create postit'),
+  );
+  return $items;
+}
+ 
+/**
+ * Implements hook_permission().
+ */
+function postit_permission(){
+    return array(
+    'administer postits' =>  array(
+      'title' => t('Administer postits'),
+      'restrict access' => TRUE,
+    ),
+    'view postits' => array(
+      'title' => t('View PostIts'),
+    ),
+		'create postits' => array(
+      'title' => t('Create PostIts'),
+    )
+  );
+}
+ 
+ 
+function postit_info() {
+  return ('Welcome to the administration page for your Postits!');
+}
+
+
+/**
+ * Menu item callback for the postit page view.
+ */
+function postit_page_view($postit, $view_mode = 'full'){
+	$projects = entity_load('postit', $postit);
+  return $projects->note;
+}
+
+/**
+ * Definition of the main field in a postit
+ */
+function postit_field_extra_fields() {
+  $return = array();
+  $return['postit']['postit'] = array(
+    'form' => array(
+      'note' => array(
+        'label' => t('Note'),
+        'description' => t('PostIt Note'),
+				'weight' => 10,
+      ),
+    ),
+  );
+  return $return;
+}
+
+function postit_add() {
+  $postit = (object) array (
+    'pid' => '',
+    'type' => 'postit',
+    'note' => '',
+  );
+  return backdrop_get_form('postit_add_form', $postit);
+}
+ 
+ 
+function postit_save(Postit $postit) {
+  return $postit->save();
+}
+
+/**
+ * Implements hook_entity_info().
+ */
+function postit_entity_info() {
+  $return = array(
+    'postit' => array(
+      'label' => t('Postit Note'),
+      'bundle label' => t('Type'),
+      'controller class' => 'PostitController',
+			'base table' => 'postit',
+      'fieldable' => TRUE,
+			'entity class' => 'Postit',
+      'entity keys' => array(
+        'id' => 'pid',
+      ),
+      'bundles' => array(
+        'postit'=> array(
+          'label' => 'Postit',
+          'admin' => array(
+            'path' => 'admin/structure/postit/manage',
+            'access arguments' => array('administer postits'),
+          ),
+        ),
+      ),
+      'view modes' => array(
+        'full' => array(
+          'label' => t('Full PostIt'),
+          'custom settings' =>  FALSE,
+        ),
+      ),
+    ),
+  );
+	return $return;
+}
+
+function postit_add_form($form, &$form_state, $postit) {
+  $form['note'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Note'),
+    '#required' => TRUE,
+  );
+  
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+
+  return $form;
+}
+
+
+function postit_add_form_submit($form, &$form_state) {
+	// create a new entity of type postit
+  $postit = entity_create('postit', $form_state['values']);
+  field_attach_submit('postit', $postit, $form, $form_state);
+  $postit_save = postit_save($postit);
+  $form_state['redirect'] = "postit/$postit->pid";
+}
+
+/**
+ * Implements hook_autoload_info().
+ */
+function postit_autoload_info(){
+  return array(
+	  'Postit' => 'postit.entity.inc',
+	  'PostitController' => 'postit.entity.inc',
+	);
+}

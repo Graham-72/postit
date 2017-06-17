@@ -1,0 +1,38 @@
+<?php
+/**
+ * Implements hook_schema().
+ */
+function postit_schema() {
+  $schema['postit'] = array (
+    'description' => 'The main store for our entity',
+    'fields' => array(
+      'pid' => array(
+        'description' => 'Primary key for our table of postit notes',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'note' => array(
+        'description' => 'The actual note',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+			'created' => array(
+        'description' => 'The Unix timestamp when the node was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default'=> 0,
+      ),
+			'uid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The {users}.uid who authored the postit. If set to 0, this postit was created by an anonymous user.',
+      )
+    ),
+    'primary key' => array('pid'),
+  );
+  
+  return $schema;
+}

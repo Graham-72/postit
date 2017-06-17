@@ -1,0 +1,6 @@
+name = Post It
+description = Demonstrate entities
+configure = admin/config/services/postit
+backdrop = 1.x
+version = 1.x-1.0.0
+type = module
